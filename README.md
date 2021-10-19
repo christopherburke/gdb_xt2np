@@ -57,6 +57,7 @@ It was also necessary to add the python lib directory to LD_LIBRARY_PATH because
 
 Whew.. kinda sucky. I also haven't figured out why my ~/.gdbinit file is not working to automatically source the gdb_xt2np.py file at startup, so I have manually source it within eclipse IDE gdb version.
 
-###TODOs
+### TODOs
 * Add support for memory ordering (i.e., column or row ordering). xt2np doesn't check the ordering of the xtensor container or set ordering when creating the numpy array
 * xt2np sets a python global variable with the same name as the variable. There is probably a safer way to do this and have the variable be available in the gdb python interpreter.
+* How to get working on a mac or windows machine and other Gui IDEs that use gdb.
