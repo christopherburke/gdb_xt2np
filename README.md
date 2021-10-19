@@ -12,6 +12,9 @@ The xt2np function loads the xtensor container into a numpy array, then uses the
 
 ### Version 0.1
 
+### FAQ
+* For modest sized arrays gdb complains about a max-size-value limit. Within gdb, `set max-size-value unlimited` will remove this warning, but beware you are not trying to bring too large of an array to numpy. Your system needs memory for holding multiple copies
+
 ### AUTHORS
 Christopher J. Burke. Inspiration for this came from several blogs and posts.
 * [Greg Law pyton pretty printer basics](https://undo.io/resources/gdb-watchpoint/here-quick-way-pretty-print-structures-gdb/)
@@ -27,7 +30,7 @@ Well I'm not going to sugar coat it. It's a pain and I am not thrilled over all 
 
 CentOS 7 comes with ancient gcc 4.8.5 compiler. For c++17 standards (for xtensor) and more recent gdb one needs at least gcc 8+. It seems that in order to upgrade gcc without breaking things on CentOS, one needs to use 'Software Collection' devtoolset. Read about it [here](https://ahelpme.com/linux/centos7/how-to-install-new-gcc-and-development-tools-under-centos-7/) and the particular one they installed devtoolset-8 [here](https://ahelpme.com/linux/centos7/how-to-install-gnu-gcc-8-on-centos-7/). At a terminal, one invokes `scl enable devtoolset-8 bash` in order to enable the gcc 8+ tool chain. However, even starting eclipse IDE from a bash shell with devtoolset-8 enabled, the eclipse IDE was still using the gcc 4 compiler and old gdb. The only way I found to have eclipse adopt the gcc 8+ tool chain is to set a command alias in my .bashrc
 
-`alias eclipse='scl enable devtoolset-8 /eta-earth/cjburke/local/eclipse/eclipse'
+`alias eclipse='scl enable devtoolset-8 /eta-earth/cjburke/local/eclipse/eclipse`
 
 Starting eclipse IDE in this manner got the gcc 8+ tool chain available from within eclipse. Within IDE gdb session `(gdb) show version` reports 8.2 in my setup. Also within gdb you can show what python version is being used
 ```
@@ -38,7 +41,7 @@ Starting eclipse IDE in this manner got the gcc 8+ tool chain available from wit
 2.7.5 (default, Nov 16 2020, 22:23:17) 
 [GCC 4.8.5 20150623 (Red Hat 4.8.5-44)]
 ```
-NOTE: The version of python in gdb has nothing to do with any python you may have on your system. If you don't compile gdb yourself, but use gdb from a package manager, then gdb uses a python library version. In other words, the python used by gdb is self contained within gdb itself and the python version used was decided when gdb was compiled. One can look in the gdb binary for the python symbols `ldd $(which gdb) | grep python` yields `libpython2.7.so.1.0 => /lib64/libpython2.7.so.1.0 (0x00007f8026f60000)` on my setup. Unfortunately, the version compiled in as part of the devtoolset-8 is a python 2 version. The question arises then how do I install numpy, matplotlib, and any other python package for use in the gdb version of python? The normal solution is install packages in the python path that the gdb python uses. One can use
+NOTE: The version of python in gdb has nothing to do with any python you may have on your system. If you don't compile gdb yourself, but use gdb from a package manager, then gdb uses a python library version. In other words, the python used by gdb is self contained within gdb itself and the python version used was decided when gdb was compiled by the package managers. One can look in the gdb binary for the python symbols `ldd $(which gdb) | grep python` yields `libpython2.7.so.1.0 => /lib64/libpython2.7.so.1.0 (0x00007f8026f60000)` on my setup. Unfortunately, the version compiled in as part of the devtoolset-8 is a python 2 version. The question arises then how do I install numpy, matplotlib, and any other python package for use in the gdb version of python? The normal solution is install packages in the python path that the gdb python uses. One can use
 ```
 (gdb) py
 >import sys
@@ -50,6 +53,10 @@ to show the path where the gdb python version expects to find site-packages. Unf
 export GDBPYDIR=/eta-earth/cjburke/local/.conda/envs/py27
 alias eclipse='export PYTHONPATH=${PYTHONPATH}:${GDBPYDIR}/lib/python2.7/site-packages; export LD_LIBRARY_PATH=${GDBPYDIR}/lib:${LD_LIBRARY_PATH}; scl enable devtoolset-8 /eta-earth/cjburke/local/eclipse/eclipse'
 ```
-It was also necessary to all the lib directory to LD_LIBRARY_PATH because there was a collision for a library that matplotlib needs in the system and the one that it needs from the environment.
+It was also necessary to add the python lib directory to LD_LIBRARY_PATH because there was a collision for a library that matplotlib needs in the system and the one that it needs from the environment.
 
 Whew.. kinda sucky. I also haven't figured out why my ~/.gdbinit file is not working to automatically source the gdb_xt2np.py file at startup, so I have manually source it within eclipse IDE gdb version.
+
+###TODOs
+* Add support for memory ordering (i.e., column or row ordering). xt2np doesn't check the ordering of the xtensor container or set ordering when creating the numpy array
+* xt2np sets a python global variable with the same name as the variable. There is probably a safer way to do this and have the variable be available in the gdb python interpreter.
